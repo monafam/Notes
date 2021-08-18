@@ -1,3 +1,4 @@
+
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/crud/edit_Nots.dart';
+import 'package:flutter_app/crud/view.dart';
 
 class MenuScreen extends StatefulWidget {
   @override
@@ -101,7 +103,13 @@ class ListNotes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return InkWell(
+      onTap: (){
+        Navigator.of(context).push(MaterialPageRoute(builder: (context){
+          return ViewNote(notes: notes,);
+        }));
+      },
+     child: Card(
       color:Colors.primaries[Random().nextInt(Colors.primaries.length)],
       child: Row(
         children: [
@@ -118,6 +126,11 @@ class ListNotes extends StatelessWidget {
               child: ListTile(
                 title: Text('${notes['titel']}'),
                 subtitle: Text("${notes['nots']}"),
+
+                leading: IconButton(
+                  onPressed: (){},
+                  icon: Icon(Icons.delete),
+                ),
                 trailing: IconButton(
                   onPressed: () {
                     //  Navigator.of(context).pushNamed('editnots');
@@ -134,6 +147,6 @@ class ListNotes extends StatelessWidget {
               ))
         ],
       ),
-    );
+    ));
   }
 }

@@ -1,6 +1,6 @@
+
 import 'dart:io';
 import 'dart:math';
-
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +8,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 class addNotes extends StatefulWidget {
   @override
@@ -15,9 +17,10 @@ class addNotes extends StatefulWidget {
 }
 
 class _addNotesState extends State<addNotes> {
+  late File file;
   CollectionReference noteref = FirebaseFirestore.instance.collection('notes');
   var ref;
-   late File file;
+
 
   var title, note, imegurl;
   GlobalKey<FormState> formstate = new GlobalKey<FormState>();
@@ -34,14 +37,14 @@ class _addNotesState extends State<addNotes> {
   }
 
   addNot(context) async {
+    var isValid = formstate.currentState!.validate();
     // if (file == null){
     //   return AwesomeDialog(
     //       context: context,
     //       title: 'Error',
     //       body: Text('Please choos Images'),
-    //       dialogType: DialogType.ERROR)
-    //     ..show();}
-    var isValid = formstate.currentState!.validate();
+    //       dialogType: DialogType.ERROR)..show();}
+
     if (isValid) {
       _openLoadingDialog(context);
 

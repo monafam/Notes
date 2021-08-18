@@ -1,5 +1,11 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/crud/edit_Nots.dart';
 
 class MenuScreen extends StatefulWidget {
   @override
@@ -7,6 +13,10 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
+  CollectionReference noterdf = FirebaseFirestore.instance.collection('notes');
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,27 +25,114 @@ class _MenuScreenState extends State<MenuScreen> {
         title: Text('MENU'),
         actions: [
           DropdownButton(
-              icon: Icon(Icons.more_vert,color: Colors.black,),
-              items:[
-                DropdownMenuItem(child: Row( children: [
-                  Icon(Icons.exit_to_app),
-                  SizedBox(height: 8,),
-                  Text('Logout')
-                ],),
-                  value: 'logout',
-                )
-              ],
-            onChanged: (itemIdentifier){
-                if(itemIdentifier=='logout'){
-                  FirebaseAuth.instance.signOut();
-                }
-
+            icon: Icon(
+              Icons.more_vert,
+              color: Colors.black,
+            ),
+            items: [
+              DropdownMenuItem(
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    Text('Logout')
+                  ],
+                ),
+                value: 'logout',
+              )
+            ],
+            onChanged: (itemIdentifier) {
+              if (itemIdentifier == 'logout') {
+                FirebaseAuth.instance.signOut();
+              }
             },
           )
         ],
       ),
-      body: Container(
-        child: Text('monaf'),
+      body: FutureBuilder<QuerySnapshot>(
+        future: noterdf
+            .where('userid', isEqualTo: FirebaseAuth.instance.currentUser.uid)
+            .get(),
+        builder: (context, snapshat) {
+          if (snapshat != null || snapshat.hasData) {
+            return ListView.builder(
+                itemCount: snapshat.data!.docs.length,
+                itemBuilder: (context, i) {
+                  return Dismissible(
+                      onDismissed: (diretion) async {
+                        await noterdf.doc(snapshat.data!.docs[i].id).delete();
+                        await FirebaseStorage.instance
+                            .refFromURL(snapshat.data!.docs[i]['imageurl'])
+                            .delete()
+                            .then((value) =>
+                            print('Deleet'));
+                        print('===================');
+                      },
+                      key: UniqueKey(),
+                      child: ListNotes(
+                        notes: snapshat.data!.docs[i],
+                        docid: snapshat.data!.docs[i].id,
+                      ));
+                });
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          Navigator.of(context).pushNamed('addnots');
+        },
+      ),
+    );
+  }
+}
+//
+class ListNotes extends StatelessWidget {
+  final docid;
+  final notes;
+
+  ListNotes({this.notes, this.docid});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color:Colors.primaries[Random().nextInt(Colors.primaries.length)],
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: Image.network(
+              '${notes['imageurl']}',
+              fit: BoxFit.fill,
+              height: 80,
+            ),
+          ),
+          Expanded(
+              flex: 3,
+              child: ListTile(
+                title: Text('${notes['titel']}'),
+                subtitle: Text("${notes['nots']}"),
+                trailing: IconButton(
+                  onPressed: () {
+                    //  Navigator.of(context).pushNamed('editnots');
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return EditNots(
+                        docid: docid,
+                        lest: notes,
+                      );
+                    }));
+                  },
+                  icon: Icon(Icons.edit),
+                ),
+              ))
+        ],
       ),
     );
   }

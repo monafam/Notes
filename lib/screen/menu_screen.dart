@@ -55,8 +55,8 @@ class _MenuScreenState extends State<MenuScreen> {
         future: noterdf
             .where('userid', isEqualTo: FirebaseAuth.instance.currentUser.uid)
             .get(),
-        builder: (context, snapshat) {
-          if (snapshat != null || snapshat.hasData) {
+        builder: (BuildContext context,AsyncSnapshot<QuerySnapshot> snapshat ) {
+          if ( snapshat.hasData) {
             return ListView.builder(
                 itemCount: snapshat.data!.docs.length,
                 itemBuilder: (context, i) {
